@@ -1,134 +1,215 @@
 #include "eimuV2.h"
 
-void clearI2CBuffer() {
-  while (Wire.available()) {
-    Wire.read();  // discard all leftover bytes
-  }
-}
-
 EIMU_V2::EIMU_V2(int slave_addr)
 {
   slaveAddr = slave_addr;
 }
 
-float EIMU_V2::readQuat(int pos_no)
-{
-  float quat = get("/quat", pos_no);
-  return quat;
+uint8_t computeChecksum(uint8_t *packet, uint8_t length) {
+  uint8_t sum = 0;
+  for (size_t i = 0; i < length; i++) {
+    sum += packet[i]; 
+  }
+  return sum & 0xFF; 
 }
 
-float EIMU_V2::readRPY(int pos_no)
+void EIMU_V2::send_packet_without_payload(uint8_t cmd)
 {
-  float rpy = get("/rpy", pos_no);
-  return rpy;
+  // Build packet: start_byte + cmd + length + pos + float + checksum
+  uint8_t packet[4];
+  packet[0] = START_BYTE;
+  packet[1] = cmd;
+  packet[2] = 0; // msg length = 0
+
+  // Compute checksum
+  uint8_t checksum = computeChecksum(packet, 3);
+  packet[3] = checksum;
+
+  Wire.beginTransmission(slaveAddr);
+  Wire.write(packet, sizeof(packet));
+  Wire.endTransmission(true);
 }
 
-float EIMU_V2::readRPYVariance(int pos_no)
+void EIMU_V2::write_data1(uint8_t cmd, uint8_t pos, float val)
 {
-  float rpy_var = get("/rpy-var", pos_no);
-  return rpy_var;
+  // Build packet: start_byte + cmd + length + pos + float + checksum
+  uint8_t packet[1 + 1 + 1 + 1 + 4 + 1];
+  packet[0] = START_BYTE;
+  packet[1] = cmd;
+  packet[2] = 5; // msg is uint8 + float = 5byte length
+  packet[3] = pos;
+  memcpy(&packet[4], &val, sizeof(float));
+
+  // Compute checksum
+  uint8_t checksum = computeChecksum(packet, 8);
+  packet[8] = checksum;
+
+  Wire.beginTransmission(slaveAddr);
+  Wire.write(packet, sizeof(packet));
+  Wire.endTransmission(true);
 }
 
-float EIMU_V2::readAcc(int pos_no)
+void EIMU_V2::write_data3(uint8_t cmd, float val0, float val1, float val2)
 {
-  float acc = get("/acc", pos_no);
-  return acc;
+  // Build packet: start_byte + cmd + length + float*3 + checksum
+  uint8_t packet[1 + 1 + 1 + 12 + 1];
+  packet[0] = START_BYTE;
+  packet[1] = cmd;
+  packet[2] = 12; // msg is 3 float = 12byte length
+  memcpy(&packet[3], &val0, sizeof(float));
+  memcpy(&packet[7], &val1, sizeof(float));
+  memcpy(&packet[11], &val2, sizeof(float));
+  // Compute checksum
+  uint8_t checksum = computeChecksum(packet, 15);
+  packet[15] = checksum;
+
+  Wire.beginTransmission(slaveAddr);
+  Wire.write(packet, sizeof(packet));
+  Wire.endTransmission(true);
 }
 
-float EIMU_V2::readAccVariance(int pos_no)
+void EIMU_V2::write_data4(uint8_t cmd, float val0, float val1, float val2, float val3)
 {
-  float acc_var = get("/acc-var", pos_no);
-  return acc_var;
+  // Build packet: start_byte + cmd + length + float*4 + checksum
+  uint8_t packet[1 + 1 + 1 + 16 + 1];
+  packet[0] = START_BYTE;
+  packet[1] = cmd;
+  packet[2] = 16; // msg is 4 float = 16byte length
+  memcpy(&packet[3], &val0, sizeof(float));
+  memcpy(&packet[7], &val1, sizeof(float));
+  memcpy(&packet[11], &val2, sizeof(float));
+  memcpy(&packet[15], &val3, sizeof(float));
+  // Compute checksum
+  uint8_t checksum = computeChecksum(packet, 19);
+  packet[19] = checksum;
+
+  Wire.beginTransmission(slaveAddr);
+  Wire.write(packet, sizeof(packet));
+  Wire.endTransmission(true);
 }
 
-float EIMU_V2::readGyro(int pos_no)
+float EIMU_V2::read_data1()
 {
-  float gyro = get("/gyro", pos_no);
-  return gyro;
+  uint8_t buffer[4];
+  float res;
+  uint8_t dataSizeInBytes = Wire.requestFrom(slaveAddr, 4);
+  for (size_t i = 0; i < dataSizeInBytes; i += 1)
+  {
+    uint8_t data = Wire.read();
+    buffer[i] = data;
+  }
+  memcpy(&res, &buffer[0], sizeof(float));
+  return res;
 }
 
-float EIMU_V2::readGyroVariance(int pos_no)
+void EIMU_V2::read_data3(float &val0, float &val1, float &val2)
 {
-  float gyro_var = get("/gyro-var", pos_no);
-  return gyro_var;
+  uint8_t buffer[12];
+  uint8_t dataSizeInBytes = Wire.requestFrom(slaveAddr, 12);
+  for (size_t i = 0; i < dataSizeInBytes; i += 1)
+  {
+    uint8_t data = Wire.read();
+    buffer[i] = data;
+  }
+  memcpy(&val0, &buffer[0], sizeof(float));
+  memcpy(&val1, &buffer[4], sizeof(float));
+  memcpy(&val2, &buffer[8], sizeof(float));
 }
 
-float EIMU_V2::readMag(int pos_no)
+void EIMU_V2::read_data4(float &val0, float &val1, float &val2, float &val3)
 {
-  float acc = get("/mag", pos_no);
-  return acc;
+  uint8_t buffer[16];
+  uint8_t dataSizeInBytes = Wire.requestFrom(slaveAddr, 16);
+  for (size_t i = 0; i < dataSizeInBytes; i += 1)
+  {
+    uint8_t data = Wire.read();
+    buffer[i] = data;
+  }
+  memcpy(&val0, &buffer[0], sizeof(float));
+  memcpy(&val1, &buffer[4], sizeof(float));
+  memcpy(&val2, &buffer[8], sizeof(float));
+  memcpy(&val3, &buffer[12], sizeof(float));
 }
 
-bool EIMU_V2::setWorldFrameId(int id=1)
+void EIMU_V2::readQuat(float &qw, float &qx, float &qy, float &qz)
 {
-  return send("/frame-id", -1, id);
+  send_packet_without_payload(READ_QUAT);
+  read_data4(qw, qx, qy, qz);
+  read_data4(qw, qx, qy, qz);
+}
+
+void EIMU_V2::readRPY(float &x, float &y, float &z)
+{
+  send_packet_without_payload(READ_RPY);
+  read_data3(x, y, z);
+  read_data3(x, y, z);
+}
+
+void EIMU_V2::readRPYVariance(float &x, float &y, float &z)
+{
+  send_packet_without_payload(READ_RPY_VAR);
+  read_data3(x, y, z);
+  read_data3(x, y, z);
+}
+
+void EIMU_V2::readAcc(float &x, float &y, float &z)
+{
+  send_packet_without_payload(READ_ACC);
+  read_data3(x, y, z);
+  read_data3(x, y, z);
+}
+
+void EIMU_V2::readAccVariance(float &x, float &y, float &z)
+{
+  send_packet_without_payload(READ_ACC_VAR);
+  read_data3(x, y, z);
+  read_data3(x, y, z);
+}
+
+void EIMU_V2::readGyro(float &x, float &y, float &z)
+{
+  send_packet_without_payload(READ_GYRO);
+  read_data3(x, y, z);
+  read_data3(x, y, z);
+}
+
+void EIMU_V2::readGyroVariance(float &x, float &y, float &z)
+{
+  send_packet_without_payload(READ_GYRO_VAR);
+  read_data3(x, y, z);
+  read_data3(x, y, z);
+}
+
+void EIMU_V2::readMag(float &x, float &y, float &z)
+{
+  send_packet_without_payload(READ_MAG);
+  read_data3(x, y, z);
+  read_data3(x, y, z);
+}
+
+int EIMU_V2::setWorldFrameId(int id=1)
+{
+  float res;
+  write_data1(SET_FRAME_ID, 0, (float)id);
+  res = read_data1();
+  res = read_data1();
+  return (int)res;
 }
 
 int EIMU_V2::getWorldFrameId()
 {
-  float id = get("/frame-id", -1);
+  float id;
+  write_data1(GET_FRAME_ID, 0, 0.0);
+  id = read_data1();
+  id = read_data1();
   return (int)id;
 }
 
 float EIMU_V2::getFilterGain()
 {
-  float gain = get("/gain", -1);
+  float gain;
+  write_data1(SET_FRAME_ID, 0, 0.0);
+  gain = read_data1();
+  gain = read_data1();
   return gain;
-}
-
-float EIMU_V2::get(String cmd_route, int motor_no)
-{
-  String msg_buffer = cmd_route;
-  msg_buffer += ",";
-  msg_buffer += String(motor_no);
-
-  masterSendData(msg_buffer);
-  masterReceiveData();
-  String dataMsg = masterReceiveData();
-
-  float val = dataMsg.toFloat();
-  return val;
-}
-
-bool EIMU_V2::send(String cmd_route, int motor_no, float val)
-{
-  String msg_buffer = cmd_route;
-  msg_buffer += ",";
-  msg_buffer += String(motor_no);
-  msg_buffer += ",";
-  msg_buffer += String(val, 3);
-
-  masterSendData(msg_buffer);
-  masterReceiveData();
-  String data = masterReceiveData();
-  if (data == "1")
-    return true;
-  else
-    return false;
-}
-
-void EIMU_V2::masterSendData(String i2c_msg)
-{
-  Wire.beginTransmission(slaveAddr);
-  Wire.print(i2c_msg);
-  Wire.endTransmission(true);
-}
-
-String EIMU_V2::masterReceiveData()
-{
-  String i2c_msg = "";
-  Wire.flush();
-  uint8_t dataSizeInBytes = Wire.requestFrom(slaveAddr, 15);
-  for (int i = 0; i < dataSizeInBytes; i += 1)
-  {
-    char c = Wire.read();
-    i2c_msg += c;
-  }
-  int indexPos = i2c_msg.indexOf((char)255);
-  if (indexPos != -1)
-  {
-    return i2c_msg.substring(0, indexPos);
-  }
-  i2c_msg.trim();
-  return i2c_msg;
 }
