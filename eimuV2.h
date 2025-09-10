@@ -17,11 +17,8 @@ public:
   void readGyro(float &x, float &y, float &z);
   void readGyroVariance(float &x, float &y, float &z);
   void readMag(float &x, float &y, float &z);
-
   int setWorldFrameId(int);
-
   int getWorldFrameId();
-
   float getFilterGain();
 
 
