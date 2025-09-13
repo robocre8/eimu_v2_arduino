@@ -21,7 +21,7 @@ float toDeg = 1 / toRad;
 
 
 long prevSampleTime;
-long sampleTime = 50; // millisec
+long sampleTime = 20; // millisec
 
 void setup()
 {
@@ -58,10 +58,9 @@ void loop()
   if ((millis() - prevSampleTime) >= sampleTime)
   {
     /* CODE SHOULD GO IN HERE*/
+    float r, p, y;
 
-    float r = imu.readRPY(0);
-    float p = imu.readRPY(1);
-    float y = imu.readRPY(2);
+    imu.readRPY(r, p, y);
 
     // Serial.print(r, 4);
     // Serial.print(", ");
