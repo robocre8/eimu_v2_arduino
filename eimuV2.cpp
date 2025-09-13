@@ -131,6 +131,42 @@ void EIMU_V2::read_data4(float &val0, float &val1, float &val2, float &val3)
   memcpy(&val3, &buffer[12], sizeof(float));
 }
 
+void EIMU_V2::read_data6(float &val0, float &val1, float &val2, float &val3, float &val4, float &val5)
+{
+  uint8_t buffer[24];
+  uint8_t dataSizeInBytes = Wire.requestFrom(slaveAddr, 24);
+  for (size_t i = 0; i < dataSizeInBytes; i += 1)
+  {
+    uint8_t data = Wire.read();
+    buffer[i] = data;
+  }
+  memcpy(&val0, &buffer[0], sizeof(float));
+  memcpy(&val1, &buffer[4], sizeof(float));
+  memcpy(&val2, &buffer[8], sizeof(float));
+  memcpy(&val3, &buffer[12], sizeof(float));
+  memcpy(&val4, &buffer[16], sizeof(float));
+  memcpy(&val5, &buffer[20], sizeof(float));
+}
+
+void EIMU_V2::read_data8(float &val0, float &val1, float &val2, float &val3, float &val4, float &val5, float &val6, float &val7)
+{
+  uint8_t buffer[32];
+  uint8_t dataSizeInBytes = Wire.requestFrom(slaveAddr, 32);
+  for (size_t i = 0; i < dataSizeInBytes; i += 1)
+  {
+    uint8_t data = Wire.read();
+    buffer[i] = data;
+  }
+  memcpy(&val0, &buffer[0], sizeof(float));
+  memcpy(&val1, &buffer[4], sizeof(float));
+  memcpy(&val2, &buffer[8], sizeof(float));
+  memcpy(&val3, &buffer[12], sizeof(float));
+  memcpy(&val4, &buffer[16], sizeof(float));
+  memcpy(&val5, &buffer[20], sizeof(float));
+  memcpy(&val6, &buffer[24], sizeof(float));
+  memcpy(&val7, &buffer[28], sizeof(float));
+}
+
 void EIMU_V2::readQuat(float &qw, float &qx, float &qy, float &qz)
 {
   send_packet_without_payload(READ_QUAT);
@@ -212,4 +248,19 @@ float EIMU_V2::getFilterGain()
   gain = read_data1();
   gain = read_data1();
   return gain;
+}
+
+void EIMU_V2::readAccGyro(float &ax, float &ay, float &az, float &gx, float &gy, float &gz)
+{
+  send_packet_without_payload(READ_ACC_GYRO);
+  read_data6(ax, ay, az, gx, gy, gz);
+  read_data6(ax, ay, az, gx, gy, gz);
+}
+
+void EIMU_V2::readQuatRPY(float &qw, float &qx, float &qy, float &qz, float &r, float &p, float &y)
+{
+  float dummy_data;
+  send_packet_without_payload(READ_QUAT_RPY);
+  read_data8(qw, qx, qy, qz, r, p, y, dummy_data);
+  read_data8(qw, qx, qy, qz, r, p, y, dummy_data);
 }

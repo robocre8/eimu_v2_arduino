@@ -20,6 +20,8 @@ public:
   int setWorldFrameId(int);
   int getWorldFrameId();
   float getFilterGain();
+  void readQuatRPY(float &qw, float &qx, float &qy, float &qz, float &r, float &p, float &y);
+  void readAccGyro(float &ax, float &ay, float &az, float &gx, float &gy, float &gz);
 
 
 private:
@@ -31,6 +33,8 @@ private:
   float read_data1();
   void read_data3(float &val0, float &val1, float &val2);
   void read_data4(float &val0, float &val1, float &val2, float &val3);
+  void read_data6(float &val0, float &val1, float &val2, float &val3, float &val4, float &val5);
+  void read_data8(float &val0, float &val1, float &val2, float &val3, float &val4, float &val5, float &val6, float &val7);
 
   //  Protocol Command IDs -------------
   const uint8_t START_BYTE = 0xBB;
@@ -45,6 +49,8 @@ private:
   const uint8_t GET_FILTER_GAIN = 0x1E;
   const uint8_t SET_FRAME_ID = 0x1F;
   const uint8_t GET_FRAME_ID = 0x20;
+  const uint8_t READ_QUAT_RPY = 0x22;
+  const uint8_t READ_ACC_GYRO = 0x23;
   //---------------------------------------------
 };
 
