@@ -171,56 +171,56 @@ void EIMU_V2::readQuat(float &qw, float &qx, float &qy, float &qz)
 {
   send_packet_without_payload(READ_QUAT);
   read_data4(qw, qx, qy, qz);
-  read_data4(qw, qx, qy, qz);
+  // read_data4(qw, qx, qy, qz);
 }
 
 void EIMU_V2::readRPY(float &x, float &y, float &z)
 {
   send_packet_without_payload(READ_RPY);
   read_data3(x, y, z);
-  read_data3(x, y, z);
+  // read_data3(x, y, z);
 }
 
 void EIMU_V2::readRPYVariance(float &x, float &y, float &z)
 {
   send_packet_without_payload(READ_RPY_VAR);
   read_data3(x, y, z);
-  read_data3(x, y, z);
+  // read_data3(x, y, z);
 }
 
 void EIMU_V2::readAcc(float &x, float &y, float &z)
 {
   send_packet_without_payload(READ_ACC);
   read_data3(x, y, z);
-  read_data3(x, y, z);
+  // read_data3(x, y, z);
 }
 
 void EIMU_V2::readAccVariance(float &x, float &y, float &z)
 {
   send_packet_without_payload(READ_ACC_VAR);
   read_data3(x, y, z);
-  read_data3(x, y, z);
+  // read_data3(x, y, z);
 }
 
 void EIMU_V2::readGyro(float &x, float &y, float &z)
 {
   send_packet_without_payload(READ_GYRO);
   read_data3(x, y, z);
-  read_data3(x, y, z);
+  // read_data3(x, y, z);
 }
 
 void EIMU_V2::readGyroVariance(float &x, float &y, float &z)
 {
   send_packet_without_payload(READ_GYRO_VAR);
   read_data3(x, y, z);
-  read_data3(x, y, z);
+  // read_data3(x, y, z);
 }
 
 void EIMU_V2::readMag(float &x, float &y, float &z)
 {
   send_packet_without_payload(READ_MAG);
   read_data3(x, y, z);
-  read_data3(x, y, z);
+  // read_data3(x, y, z);
 }
 
 int EIMU_V2::setWorldFrameId(int id=1)
@@ -228,7 +228,7 @@ int EIMU_V2::setWorldFrameId(int id=1)
   float res;
   write_data1(SET_FRAME_ID, 0, (float)id);
   res = read_data1();
-  res = read_data1();
+  // res = read_data1();
   return (int)res;
 }
 
@@ -237,7 +237,7 @@ int EIMU_V2::getWorldFrameId()
   float id;
   write_data1(GET_FRAME_ID, 0, 0.0);
   id = read_data1();
-  id = read_data1();
+  // id = read_data1();
   return (int)id;
 }
 
@@ -246,7 +246,7 @@ float EIMU_V2::getFilterGain()
   float gain;
   write_data1(SET_FRAME_ID, 0, 0.0);
   gain = read_data1();
-  gain = read_data1();
+  // gain = read_data1();
   return gain;
 }
 
@@ -254,7 +254,7 @@ void EIMU_V2::readAccGyro(float &ax, float &ay, float &az, float &gx, float &gy,
 {
   send_packet_without_payload(READ_ACC_GYRO);
   read_data6(ax, ay, az, gx, gy, gz);
-  read_data6(ax, ay, az, gx, gy, gz);
+  // read_data6(ax, ay, az, gx, gy, gz);
 }
 
 void EIMU_V2::readQuatRPY(float &qw, float &qx, float &qy, float &qz, float &r, float &p, float &y)
@@ -262,5 +262,5 @@ void EIMU_V2::readQuatRPY(float &qw, float &qx, float &qy, float &qz, float &r, 
   float dummy_data;
   send_packet_without_payload(READ_QUAT_RPY);
   read_data8(qw, qx, qy, qz, r, p, y, dummy_data);
-  read_data8(qw, qx, qy, qz, r, p, y, dummy_data);
+  // read_data8(qw, qx, qy, qz, r, p, y, dummy_data);
 }
