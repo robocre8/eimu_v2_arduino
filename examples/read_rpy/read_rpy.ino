@@ -38,6 +38,7 @@ void setup()
     Serial.println(i);
   }
 
+  imu.clearDataBuffer();
   // check the refence frame the IMU is working in (0 - NWU,  1 - ENU,  2 - NED)
   int ref_frame_id = 1;
   imu.setWorldFrameId(ref_frame_id);

@@ -22,6 +22,7 @@ public:
   float getFilterGain();
   void readQuatRPY(float &qw, float &qx, float &qy, float &qz, float &r, float &p, float &y);
   void readAccGyro(float &ax, float &ay, float &az, float &gx, float &gy, float &gz);
+  int clearDataBuffer();
 
 
 private:
@@ -51,6 +52,7 @@ private:
   const uint8_t GET_FRAME_ID = 0x20;
   const uint8_t READ_QUAT_RPY = 0x22;
   const uint8_t READ_ACC_GYRO = 0x23;
+  const uint8_t CLEAR_DATA_BUFFER = 0x27
   //---------------------------------------------
 };
 

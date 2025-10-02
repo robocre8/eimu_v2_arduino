@@ -264,3 +264,12 @@ void EIMU_V2::readQuatRPY(float &qw, float &qx, float &qy, float &qz, float &r, 
   read_data8(qw, qx, qy, qz, r, p, y, dummy_data);
   // read_data8(qw, qx, qy, qz, r, p, y, dummy_data);
 }
+
+int EIMU_V2::clearDataBuffer()
+{
+  float res;
+  write_data1(CLEAR_DATA_BUFFER, 0, 0);
+  res = read_data1();
+  // res = read_data1();
+  return (int)res;
+}
